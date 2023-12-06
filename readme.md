@@ -14,7 +14,7 @@ The faster startup time is achieved by hardcoding the tokens for each node:
 version: "3.3"
 services:
   cassandra-one:
-    image: shotover-test/cassandra-test:4.0.6
+    image: shotover/cassandra-test:4.0.6
     ports:
       - "9042:9042"
     environment:
@@ -30,6 +30,9 @@ services:
         # Optionally bind a keystore to this path in order to enable TLS
         target: "/etc/cassandra/certs/keystore.p12"
 ```
+
+When `CASSANDRA_SEEDS` is not present the instance will always have a data center of `datacenter1` and a rack of `rack1`.
+These values are not configurable as cassandra hardcodes them when using the fastest start up process.
 
 ## Cluster Usage
 
@@ -47,7 +50,7 @@ networks:
 
 services:
   cassandra-one:
-    image: &image library/cassandra-test:4.0.6
+    image: &image shotover/cassandra-test:4.0.6
     networks:
       cluster_subnet:
         ipv4_address: 172.16.1.2

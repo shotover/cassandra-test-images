@@ -14,7 +14,7 @@ The faster startup time is achieved by hardcoding the tokens for each node:
 version: "3.3"
 services:
   cassandra-one:
-    image: shotover/cassandra-test:4.0.6
+    image: shotover/cassandra-test:4.0.6-r1
     ports:
       - "9042:9042"
     environment:
@@ -50,7 +50,7 @@ networks:
 
 services:
   cassandra-one:
-    image: &image shotover/cassandra-test:4.0.6
+    image: &image shotover/cassandra-test:4.0.6-r1
     networks:
       cluster_subnet:
         ipv4_address: 172.16.1.2

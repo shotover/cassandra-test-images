@@ -1,4 +1,4 @@
-FROM library/cassandra:5.0-beta1
+FROM library/cassandra:5.0-rc1
 
 COPY ./cassandra.yaml /etc/cassandra/cassandra.yaml
 COPY docker-entrypoint.sh /usr/local/bin/

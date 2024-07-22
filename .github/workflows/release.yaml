@@ -29,7 +29,7 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-          cd ../cassandra-5.0-beta1
-          IMAGE_NAME=shotover/cassandra-test:5.0-beta1-${GITHUB_REF/refs\/tags\//}
+          cd ../cassandra-5.0-rc1
+          IMAGE_NAME=shotover/cassandra-test:5.0-rc1-${GITHUB_REF/refs\/tags\//}
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME

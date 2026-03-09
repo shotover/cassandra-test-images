@@ -1,0 +1,21 @@
+---
+name: "Test image build"
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-image:
+    name: "Build ${{ matrix.cassandra }} (${{ matrix.runner }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        cassandra: ["4.0.6", "3.11.13", "5.0-rc1"]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: |
+          docker buildx build cassandra-${{ matrix.cassandra }}

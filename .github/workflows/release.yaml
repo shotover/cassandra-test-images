@@ -7,29 +7,47 @@ on:
       - "r*"
 
 jobs:
-  publish-image:
-    name: "Publish Docker Image to Docker Hub"
-    runs-on: ubuntu-latest
+  build-image:
+    name: "Build ${{ matrix.cassandra }} (${{ matrix.runner }})"
+    strategy:
+      matrix:
+        cassandra: ["4.0.6", "3.11.13", "5.0-rc1"]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: actions/checkout@v3
-      - name: Push image
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push single-platform image
         run: |
-          cd cassandra-4.0.6
-          IMAGE_NAME=shotover/cassandra-test:4.0.6-${GITHUB_REF/refs\/tags\//}
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          TAG=${GITHUB_REF/refs\/tags\//}
+          ARCH=$(dpkg --print-architecture)
+          docker buildx build cassandra-${{ matrix.cassandra }} \
+            -t shotover/cassandra-test:${{ matrix.cassandra }}-$TAG-$ARCH \
+            --push
 
-          cd ../cassandra-3.11.13
-          IMAGE_NAME=shotover/cassandra-test:3.11.13-${GITHUB_REF/refs\/tags\//}
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
-
-          cd ../cassandra-5.0-rc1
-          IMAGE_NAME=shotover/cassandra-test:5.0-rc1-${GITHUB_REF/refs\/tags\//}
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+  publish-manifest:
+    name: "Publish manifest for ${{ matrix.cassandra }}"
+    needs: build-image
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        cassandra: ["4.0.6", "3.11.13", "5.0-rc1"]
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Create and push multi-arch manifest
+        run: |
+          TAG=${GITHUB_REF/refs\/tags\//}
+          IMAGE=shotover/cassandra-test:${{ matrix.cassandra }}-$TAG
+          docker buildx imagetools create -t $IMAGE \
+            $IMAGE-amd64 \
+            $IMAGE-arm64
